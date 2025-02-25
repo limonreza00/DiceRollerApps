@@ -40,6 +40,10 @@ fun DiceRollerMain(){
 
     val playerScores = remember { mutableStateOf(Array(2) { 0 }) }
 
+    val gameOver = remember { mutableStateOf(false) }
+
+    val winner = remember { mutableStateOf(0) }
+
     val diceImages = remember {
         mutableListOf(
             Res.drawable.dice_1,
@@ -52,6 +56,14 @@ fun DiceRollerMain(){
     }
     var currentDiceImage by remember { mutableStateOf(Res.drawable.compose_multiplatform) }
 
+    fun restartGame (){
+        playerScores.value = Array(2) { 0 }
+        isPlayer1.value = true
+        currentDiceImage = Res.drawable.compose_multiplatform
+        gameOver.value = false
+        winner.value = 0
+    }
+
     Column (
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -63,40 +75,58 @@ fun DiceRollerMain(){
         )
         Spacer(modifier = Modifier.padding(16.dp))
 
-        Image(
-            painter = painterResource(currentDiceImage),
-            contentDescription = "Dice")
+        if (gameOver.value){
 
-        Spacer(modifier = Modifier.padding(16.dp))
+            Text(text = "Player ${winner.value} won the game")
+            Button(onClick = { restartGame()}){ Text("Restart Game") }
+        } else {
+            Image(
+                painter = painterResource(currentDiceImage),
+                contentDescription = "Dice")
 
-        Button(
-            onClick = {
-                val randomNum = (1..6).random()
-                currentDiceImage = diceImages[randomNum - 1]
-                if (isPlayer1.value) {
-                    playerScores.value[0] += randomNum
-                } else {
-                    playerScores.value[1] += randomNum
+            Spacer(modifier = Modifier.padding(16.dp))
+
+            Button(
+                onClick = {
+                    val randomNum = (1..6).random()
+                    currentDiceImage = diceImages[randomNum - 1]
+                    if (isPlayer1.value) {
+                        playerScores.value[0] += randomNum
+                    } else {
+                        playerScores.value[1] += randomNum
+                    }
+
+                    if (playerScores.value[0] >= 100){
+                        gameOver.value = true
+                        winner.value = 1
+                    } else if (playerScores.value[1] >= 100){
+                        gameOver.value = true
+                        winner.value = 2
+
+                    }
+
+
+
+                    isPlayer1.value = !isPlayer1.value
+
                 }
-                isPlayer1.value = !isPlayer1.value
-
+            ) {
+                Text(if (isPlayer1.value) "Player 1" else "Player 2")
             }
-        ) {
-            if (isPlayer1.value) Text("Player 1") else Text("Player 2")
-        }
 
-        Spacer(modifier = Modifier.padding(16.dp))
+            Spacer(modifier = Modifier.padding(16.dp))
 
-        Row (
-            modifier = Modifier.fillMaxWidth()
-                .padding(horizontal = 30.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ){
+            Row (
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = 30.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ){
 
-            Text(text = "Player 1 \n ${playerScores.value[0]} ")
+                Text(text = "Player 1 \n ${playerScores.value[0]} ")
+                Text(text = "Player 1 \n ${playerScores.value[1]} ")
+            }
 
-            Text(text = "Player 1 \n ${playerScores.value[1]} ")
         }
 
     }
